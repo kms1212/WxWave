@@ -128,6 +128,7 @@
             <property name="permission">none</property>
             <property name="shortcut">CTRL+O</property>
             <property name="unchecked_bitmap"></property>
+            <event name="OnMenuSelection">onMenuItemOpen</event>
           </object>
           <object class="wxMenuItem" expanded="true">
             <property name="bitmap"></property>

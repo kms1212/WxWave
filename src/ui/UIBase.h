@@ -76,6 +76,7 @@ class MainFrameUI : public wxFrame
 		wxStatusBar* m_statusBar1;
 
 		// Virtual event handlers, override them in your derived class
+		virtual void onMenuItemOpen( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToolBarZoomInClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToolBarZoomOutClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onHierarchyViewSelectionChanged( wxDataViewEvent& event ) { event.Skip(); }

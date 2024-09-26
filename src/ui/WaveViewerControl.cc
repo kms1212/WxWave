@@ -269,6 +269,12 @@ void WaveViewerControl::AddTrace(const std::string& name,
     this->Refresh(false);
 }
 
+void WaveViewerControl::ClearTraces()
+{
+    this->traces.clear();
+    this->Unselect();
+}
+
 Time WaveViewerControl::GetDisplayStart() const { return this->display_start; }
 
 void WaveViewerControl::SetDisplayStart(Time time)
@@ -294,6 +300,8 @@ int WaveViewerControl::GetSelectionIndex() const
         return -1;
     return this->selection;
 }
+
+void WaveViewerControl::Unselect() { this->selection = -1; }
 
 bool WaveViewerControl::GetCursor(Time* start, Time* end) const
 {

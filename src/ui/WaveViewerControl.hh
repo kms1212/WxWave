@@ -75,6 +75,7 @@ public:
 
     void AddTrace(const std::string& name, const std::string& identifier,
         int height, Trace<LogicValue>* trace_handle);
+    void ClearTraces();
 
     Time GetDisplayStart() const;
     void SetDisplayStart(Time time);
@@ -83,6 +84,7 @@ public:
     void SetDisplayPeriod(Time time);
 
     int GetSelectionIndex() const;
+    void Unselect();
 
     bool GetCursor(Time* start, Time* end) const;
 

@@ -120,8 +120,13 @@ class MainFrame : public MainFrameUI {
     DECLARE_EVENT_TABLE();
 
 private:
-    GhwFile ghw;
-    HierarchyViewModel* hie_model;
+    std::unique_ptr<GhwFile> ghw;
+    std::unique_ptr<HierarchyViewModel> hie_model;
+
+    void unloadFile();
+    void loadFile(const std::string& path);
+
+    virtual void onMenuItemOpen(wxCommandEvent& event) override;
 
     virtual void onHierarchyViewSelectionChanged(
         wxDataViewEvent& event) override;

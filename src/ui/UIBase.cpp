@@ -205,6 +205,7 @@ MainFrameUI::MainFrameUI( wxWindow* parent, wxWindowID id, const wxString& title
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	menu_file->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrameUI::onMenuItemOpen ), this, mitem_open->GetId());
 	this->Connect( tbitem_zoom_in->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameUI::onToolBarZoomInClicked ) );
 	this->Connect( tbitem_zoom_out->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameUI::onToolBarZoomOutClicked ) );
 	hierarchy_view->Connect( wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, wxDataViewEventHandler( MainFrameUI::onHierarchyViewSelectionChanged ), NULL, this );

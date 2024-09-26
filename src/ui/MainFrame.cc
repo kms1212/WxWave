@@ -2,7 +2,6 @@
 
 MainFrame::MainFrame(wxWindow* parent, wxWindowID id)
     : MainFrameUI(parent, id)
-    , ghw("wave.ghw")
 {
     wxDataViewColumn* col;
 
@@ -14,10 +13,6 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id)
     col = new wxDataViewColumn("Type", new wxDataViewTextRenderer(), 1,
         wxSIZE_AUTO_WIDTH, wxALIGN_LEFT);
     this->hierarchy_view->AppendColumn(col);
-
-    this->hie_model = new HierarchyViewModel(this->ghw.getTop());
-
-    this->hierarchy_view->AssociateModel(this->hie_model);
 
     // property list configuration
     wxListItem col0;
@@ -36,6 +31,37 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id)
 }
 
 MainFrame::~MainFrame() { }
+
+void MainFrame::unloadFile()
+{
+    this->hierarchy_view->AssociateModel(nullptr);
+    this->property_list->DeleteAllItems();
+    this->wave_viewer->ClearTraces();
+    ghw.release();
+}
+
+void MainFrame::loadFile(const std::string& path)
+{
+    this->unloadFile();
+
+    ghw.reset(new GhwFile(path));
+    this->SetTitle("WxWave - " + path);
+    this->hie_model.reset(new HierarchyViewModel(this->ghw->getTop()));
+    this->hierarchy_view->AssociateModel(this->hie_model.get());
+}
+
+void MainFrame::onMenuItemOpen(wxCommandEvent& event)
+{
+    wxFileDialog ofd(this, _("Open wave file"), "", "",
+        "GHDL Wave (*.ghw)|*.ghw|All Files (*.*)|*.*",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (ofd.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    this->loadFile(ofd.GetPath().ToStdString());
+}
 
 void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
 {
@@ -57,7 +83,7 @@ void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
             for (int i = sig_idx_start; i <= sig_idx_end; i++) {
                 this->wave_viewer->AddTrace(node->GetData().getName(),
                     node->GetData().getName(), 20,
-                    new GhwTraceHandle(this->ghw, i));
+                    new GhwTraceHandle(*this->ghw.get(), i));
             }
         }
     }
