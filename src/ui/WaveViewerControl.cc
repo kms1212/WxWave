@@ -11,13 +11,16 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-wxDEFINE_EVENT(WAVE_DUMMY_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(WAVE_DISPLAY_CHANGE_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(WAVE_CURSOR_MOVE_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(WAVE_SELECTION_CHANGE_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(SIGNAL_SELECTION_CHANGE_EVENT, wxCommandEvent);
 
 WaveViewerControl::WaveViewerControl(wxWindow* parent, wxWindowID winid,
     const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     : wxPanel(parent, winid, pos, size, style, name)
     , display_start(0)
-    , display_period(1000000000)
+    , display_period(1'000'000'000)
     , end_time(0)
     , wave_sel_start(-1)
     , wave_sel_end(-1)
@@ -66,7 +69,7 @@ std::pair<WaveViewerNode*, int> WaveViewerControl::findNodeByMousePos(
     if (row_height < 20)
         row_height = 20;
 
-    if (base_y <= mouse_y && mouse_y <= base_y + row_height + row_gap) {
+    if (base_y <= mouse_y && mouse_y <= base_y + row_height + row_gap * 2) {
         return std::make_pair<WaveViewerNode*, int>(&node, (int)base_y);
     }
 
@@ -100,6 +103,8 @@ static const wxPoint fold_handle_unfolded[]
 int WaveViewerControl::drawNode(
     wxDC& dc, WaveViewerNode& node, int base_y, int hie_level)
 {
+    bool isdark = wxSystemSettings::GetAppearance().IsDark();
+
     base_y += row_gap;
     int row_height = node.IsGroup() ? 20 : node.GetRenderHeight();
     if (row_height < 20)
@@ -112,17 +117,20 @@ int WaveViewerControl::drawNode(
         wxDCClipper clip(dc, name_rect.Intersect(signal_list_area));
         wxSize textSize = dc.GetTextExtent(node.GetName());
 
+        dc.SetPen(*wxTRANSPARENT_PEN);
         if (&node == selection) {
-            dc.SetBrush(*wxGREY_BRUSH);
-            dc.DrawRectangle(name_rect);
+            dc.SetBrush(wxColour(isdark ? 0x444444 : 0xBBBBBB));
+        } else {
+            dc.SetBrush(wxColour(isdark ? 0x222222 : 0xDDDDDD));
         }
+        dc.DrawRectangle(name_rect);
 
         dc.DrawText(node.GetName(),
             wxPoint(20 + hie_level * 10,
                 base_y + (row_height - textSize.GetHeight()) / 2));
 
         if (node.IsGroup()) {
-            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.SetBrush(wxColour(isdark ? 0xFFFFFF : 0x000000));
 
             if (node.IsFolded()) {
                 dc.DrawPolygon(3, fold_handle_folded, 4 + hie_level * 10,
@@ -222,7 +230,7 @@ void WaveViewerControl::onPaint(wxPaintEvent&)
     dc.DrawRectangle(time_indicator_area);
     dc.DrawRectangle(wave_area);
 
-    dc.SetBrush(wxColour(isdark ? 0x222222 : 0xDDDDDD));
+    dc.SetBrush(wxColour(isdark ? 0x111111 : 0xEEEEEE));
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.DrawRectangle(signal_list_area);
 
@@ -308,10 +316,27 @@ void WaveViewerControl::onLeftDown(wxMouseEvent& event)
     } else if (wave_area.Contains(mouse_pos)) {
         this->wave_sel_start = this->wave_sel_end
             = this->posToTime(mouse_pos.x);
+        wxCommandEvent new_event(WAVE_SELECTION_CHANGE_EVENT, GetId());
+        new_event.SetEventObject(this);
+        ProcessWindowEvent(new_event);
     } else if (signal_list_area.Contains(mouse_pos)) {
         auto result = this->findNodeByMousePos(
             mouse_pos.y, this->root_trace_node, wave_area.y - vscroll_offset);
-        this->selection = result.first;
+
+        if (result.first != nullptr
+            && mouse_pos.y >= result.second + result.first->GetRenderHeight()
+            && !result.first->IsGroup()) {
+            resizing_row = true;
+            resize_node_ypos = result.second;
+            resize_target_node = result.first;
+            this->SetCursor(wxCURSOR_SIZENS);
+        } else if (this->selection != result.first) {
+            this->selection = result.first;
+
+            wxCommandEvent new_event(SIGNAL_SELECTION_CHANGE_EVENT, GetId());
+            new_event.SetEventObject(this);
+            ProcessWindowEvent(new_event);
+        }
     }
 
     this->Refresh(false);
@@ -326,7 +351,15 @@ void WaveViewerControl::onLeftDoubleClick(wxMouseEvent& event)
     if (signal_list_area.Contains(mouse_pos)) {
         auto result = this->findNodeByMousePos(
             mouse_pos.y, this->root_trace_node, wave_area.y - vscroll_offset);
-        this->selection = result.first;
+
+        if (this->selection != result.first) {
+            this->selection = result.first;
+
+            wxCommandEvent new_event(SIGNAL_SELECTION_CHANGE_EVENT, GetId());
+            new_event.SetEventObject(this);
+            ProcessWindowEvent(new_event);
+        }
+
         if (result.first != nullptr && result.first->IsGroup()) {
             result.first->SetFoldStatus(!result.first->IsFolded());
         }
@@ -337,16 +370,18 @@ void WaveViewerControl::onLeftDoubleClick(wxMouseEvent& event)
 
 void WaveViewerControl::onLeftUp(wxMouseEvent& event)
 {
-    if (resizing_signal_list) {
+    if (resizing_signal_list || resizing_row) {
         this->resizing_signal_list = false;
+        this->resizing_row = false;
         this->SetCursor(wxCURSOR_ARROW);
     }
 }
 
 void WaveViewerControl::onMouseLeave(wxMouseEvent& event)
 {
-    if (resizing_signal_list) {
+    if (resizing_signal_list || resizing_row) {
         this->resizing_signal_list = false;
+        this->resizing_row = false;
         this->SetCursor(wxCURSOR_ARROW);
     }
 }
@@ -358,11 +393,18 @@ void WaveViewerControl::onMouseMotion(wxMouseEvent& event)
     if (resizing_signal_list && mouse_pos.x > 80) {
         signal_list_width = mouse_pos.x - separator_width / 2;
         this->calculateAreas();
+    } else if (resizing_row && resize_target_node
+        && resize_node_ypos + 20 <= mouse_pos.y) {
+        resize_target_node->SetRenderHeight(mouse_pos.y - resize_node_ypos);
     } else if (wave_area.Contains(mouse_pos)) {
         if (event.Dragging()) {
             this->wave_sel_end = this->posToTime(mouse_pos.x);
         }
         this->wave_cursor_pos = this->posToTime(mouse_pos.x);
+
+        wxCommandEvent new_event(WAVE_CURSOR_MOVE_EVENT, GetId());
+        new_event.SetEventObject(this);
+        ProcessWindowEvent(new_event);
     }
 
     this->Refresh(false);
@@ -384,6 +426,14 @@ void WaveViewerControl::onMouseScroll(wxMouseEvent& event)
         }
 
         this->wave_cursor_pos = this->posToTime(mouse_pos.x);
+
+        wxCommandEvent new_event(WAVE_DISPLAY_CHANGE_EVENT, GetId());
+        new_event.SetEventObject(this);
+        ProcessWindowEvent(new_event);
+
+        wxCommandEvent new_event2(WAVE_CURSOR_MOVE_EVENT, GetId());
+        new_event2.SetEventObject(this);
+        ProcessWindowEvent(new_event2);
     } else if (event.GetWheelAxis()
         == wxMouseWheelAxis::wxMOUSE_WHEEL_VERTICAL) {
         this->vscroll_offset -= event.GetWheelRotation();
@@ -422,6 +472,10 @@ void WaveViewerControl::SetDisplayStart(Time time)
 {
     this->display_start = time;
     this->Refresh(false);
+
+    wxCommandEvent new_event(WAVE_DISPLAY_CHANGE_EVENT, GetId());
+    new_event.SetEventObject(this);
+    ProcessWindowEvent(new_event);
 }
 
 Time WaveViewerControl::GetDisplayPeriod() const
@@ -433,6 +487,10 @@ void WaveViewerControl::SetDisplayPeriod(Time time)
 {
     this->display_period = time;
     this->Refresh(false);
+
+    wxCommandEvent new_event(WAVE_DISPLAY_CHANGE_EVENT, GetId());
+    new_event.SetEventObject(this);
+    ProcessWindowEvent(new_event);
 }
 
 WaveViewerNode* WaveViewerControl::GetSelection() const

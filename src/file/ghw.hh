@@ -52,21 +52,24 @@ private:
     std::map<std::string, std::string> properties;
 
     std::vector<GhwHierarchy> children;
+    const GhwHierarchy* parent;
 
     int sig_index_start = -1, sig_index_end = -1;
     const std::vector<GhwTraceData>* trace_data;
 
 public:
-    GhwHierarchy(
-        const GhwFile& file, struct ghw_handler* h, struct ghw_hie* hie);
+    GhwHierarchy(const GhwHierarchy* parent, const GhwFile& file,
+        struct ghw_handler* h, struct ghw_hie* hie);
 
     const std::string& getKind() const;
     const std::string& getName() const;
+    std::string getPath() const;
     const std::string& getSubtype() const;
     const std::vector<std::string>& getPackages() const;
     const std::map<std::string, std::string>& getProperties() const;
 
     const std::vector<GhwHierarchy>& getChildren() const;
+    const GhwHierarchy* getParent() const;
 
     bool getSignalIndexRange(unsigned int* start, unsigned int* end) const;
 };

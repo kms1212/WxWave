@@ -196,7 +196,8 @@ void GhwFile::loadData()
 
     trace_data.resize(this->handler.nbr_sigs);
 
-    this->top.reset(new GhwHierarchy(*this, &this->handler, this->handler.hie));
+    this->top.reset(
+        new GhwHierarchy(nullptr, *this, &this->handler, this->handler.hie));
 
     std::vector<int> last_value(this->handler.nbr_sigs);
     ghw_sm_type sm = ghw_sm_init;
@@ -262,11 +263,12 @@ const std::vector<GhwTraceData>& GhwFile::getTraceData(
 
 Time GhwFile::getEndTime() const { return this->end_time; }
 
-GhwHierarchy::GhwHierarchy(
-    const GhwFile& file, struct ghw_handler* h, struct ghw_hie* hie)
+GhwHierarchy::GhwHierarchy(const GhwHierarchy* parent, const GhwFile& file,
+    struct ghw_handler* h, struct ghw_hie* hie)
     : file(file)
     , h(h)
     , hie(hie)
+    , parent(parent)
 {
     this->kind = ghw_get_hie_name(hie);
     this->trace_data = nullptr;
@@ -305,7 +307,7 @@ GhwHierarchy::GhwHierarchy(
             case ghw_hie_port_inout:
             case ghw_hie_port_buffer:
             case ghw_hie_port_linkage:
-                children.push_back(GhwHierarchy(this->file, h, child));
+                children.push_back(GhwHierarchy(this, this->file, h, child));
                 break;
             default:
                 abort();
@@ -346,6 +348,25 @@ GhwHierarchy::GhwHierarchy(
 
 const std::string& GhwHierarchy::getKind() const { return this->kind; }
 const std::string& GhwHierarchy::getName() const { return this->name; }
+std::string GhwHierarchy::getPath() const
+{
+    const GhwHierarchy* current = this;
+    std::vector<const GhwHierarchy*> node_path;
+    std::string path;
+
+    while (current != nullptr) {
+        node_path.push_back(current);
+        fprintf(stderr, "%s\n", current->getName().c_str());
+        current = current->parent;
+    }
+
+    for (auto i = node_path.rbegin(); i != node_path.rend(); ++i) {
+        path += (*i)->getName() + ".";
+        node_path.pop_back();
+    }
+
+    return path;
+}
 const std::string& GhwHierarchy::getSubtype() const { return this->subtype; }
 const std::vector<std::string>& GhwHierarchy::getPackages() const
 {
@@ -360,6 +381,8 @@ const std::vector<GhwHierarchy>& GhwHierarchy::getChildren() const
 {
     return this->children;
 }
+
+const GhwHierarchy* GhwHierarchy::getParent() const { return this->parent; }
 
 bool GhwHierarchy::getSignalIndexRange(
     unsigned int* start, unsigned int* end) const

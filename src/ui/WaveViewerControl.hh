@@ -12,13 +12,21 @@
 
 #include "trace.hh"
 
-wxDECLARE_EVENT(WAVE_SCROLL_EVENT, wxCommandEvent);
-wxDECLARE_EVENT(WAVE_CURSOR_EVENT, wxCommandEvent);
+wxDECLARE_EVENT(WAVE_DISPLAY_CHANGE_EVENT, wxCommandEvent);
+wxDECLARE_EVENT(WAVE_CURSOR_MOVE_EVENT, wxCommandEvent);
+wxDECLARE_EVENT(WAVE_SELECTION_CHANGE_EVENT, wxCommandEvent);
+wxDECLARE_EVENT(SIGNAL_SELECTION_CHANGE_EVENT, wxCommandEvent);
 
-#define EVT_WAVE_SCROLL(winid, func)                                           \
-    wx__DECLARE_EVT1(WAVE_SCROLL_EVENT, winid, wxCommandEventHandler(func))
-#define EVT_WAVE_CURSOR(winid, func)                                           \
-    wx__DECLARE_EVT1(WAVE_CURSOR_EVENT, winid, wxCommandEventHandler(func))
+#define EVT_WAVE_DISPLAY_CHANGE(winid, func)                                   \
+    wx__DECLARE_EVT1(                                                          \
+        WAVE_DISPLAY_CHANGE_EVENT, winid, wxCommandEventHandler(func))
+#define EVT_WAVE_CURSOR_MOVE(winid, func)                                      \
+    wx__DECLARE_EVT1(WAVE_CURSOR_MOVE_EVENT, winid, wxCommandEventHandler(func))
+#define EVT_WAVE_SELECTION_CHANGE(winid, func)                                 \
+    wx__DECLARE_EVT1(WAVE_SELECTION_CHANGE, winid, wxCommandEventHandler(func))
+#define EVT_SIGNAL_SELECTION_CHANGE(winid, func)                               \
+    wx__DECLARE_EVT1(WAVE_SIGNAL_SELECTION_CHANGE_EVENT, winid,                \
+        wxCommandEventHandler(func))
 
 class WaveViewerNode {
 private:
@@ -67,6 +75,7 @@ public:
     void SetFoldStatus(bool folded) { this->is_folded = folded; }
 
     int GetRenderHeight() const { return this->render_height; }
+    void SetRenderHeight(int height) { this->render_height = height; }
     const std::string& GetIdentifier() const { return this->identifier; }
     std::shared_ptr<Trace<LogicValue>> GetTraceHandle()
     {
@@ -80,6 +89,10 @@ class WaveViewerControl : public wxPanel {
 
 private:
     bool resizing_signal_list = false;
+    bool resizing_row = false;
+
+    WaveViewerNode* resize_target_node;
+    int resize_node_ypos;
 
     int row_gap = 2;
     int time_indicator_height = 26;

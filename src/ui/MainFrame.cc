@@ -54,6 +54,7 @@ void MainFrame::LoadFile(const std::string& path)
         std::make_shared<WaveViewerNode>("node"));
     this->wave_viewer->Refresh(false);
     this->hierarchy_view->Select(this->hierarchy_view->GetTopItem());
+    this->hierarchy_view->Expand(this->hierarchy_view->GetTopItem());
 }
 
 void MainFrame::onMenuItemOpen(wxCommandEvent& event)
@@ -92,7 +93,7 @@ void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
                   .GetID();
 
         long idx = this->property_list->InsertItem(0, "Name");
-        this->property_list->SetItem(idx, 1, node->GetData().getName());
+        this->property_list->SetItem(idx, 1, node->GetData().getPath());
 
         idx = this->property_list->InsertItem(idx + 1, "Type");
         this->property_list->SetItem(idx, 1, node->GetData().getSubtype());
