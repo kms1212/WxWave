@@ -123,10 +123,8 @@ private:
     std::unique_ptr<GhwFile> ghw;
     std::unique_ptr<HierarchyViewModel> hie_model;
 
-    void unloadFile();
-    void loadFile(const std::string& path);
-
     virtual void onMenuItemOpen(wxCommandEvent& event) override;
+    virtual void onToolbarItemOpen(wxCommandEvent& event) override;
 
     virtual void onHierarchyViewSelectionChanged(
         wxDataViewEvent& event) override;
@@ -136,6 +134,9 @@ private:
 public:
     MainFrame(wxWindow* present, wxWindowID id = wxID_ANY);
     ~MainFrame();
+
+    void UnloadFile();
+    void LoadFile(const std::string& path);
 };
 
 #endif // __MAINFRAME__

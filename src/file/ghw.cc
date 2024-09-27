@@ -34,7 +34,7 @@ Time GhwTraceHandle::getCurrentTime() const { return this->current_time; }
 
 bool GhwTraceHandle::seekNextTransition()
 {
-    if (this->current_data_index >= this->trace_data.size()) {
+    if (this->current_data_index >= this->trace_data.size() - 1) {
         return false;
     }
 
@@ -174,6 +174,7 @@ static std::string get_subtype_indication(
 }
 
 GhwFile::GhwFile(const std::string& path)
+    : end_time(0)
 {
     this->handler.flag_verbose = 1;
     this->openHandle(path);
@@ -200,12 +201,13 @@ void GhwFile::loadData()
     std::vector<int> last_value(this->handler.nbr_sigs);
     ghw_sm_type sm = ghw_sm_init;
     int eof = 0;
+    Time current_time(0);
 
     while (!eof) {
         switch (ghw_read_sm(&this->handler, &sm)) {
         case ghw_res_snapshot:
         case ghw_res_cycle: {
-            Time current_time(this->handler.snap_time);
+            current_time = Time(this->handler.snap_time);
             for (int i = 0; i < this->handler.nbr_sigs; i++) {
                 struct ghw_sig* s = &this->handler.sigs[i];
                 char value;
@@ -234,6 +236,8 @@ void GhwFile::loadData()
         }
     }
 
+    this->end_time = current_time;
+
 end:
     return;
 }
@@ -255,6 +259,8 @@ const std::vector<GhwTraceData>& GhwFile::getTraceData(
 {
     return trace_data[signal];
 }
+
+Time GhwFile::getEndTime() const { return this->end_time; }
 
 GhwHierarchy::GhwHierarchy(
     const GhwFile& file, struct ghw_handler* h, struct ghw_hie* hie)

@@ -80,6 +80,8 @@ private:
 
     std::vector<std::vector<GhwTraceData>> trace_data;
 
+    Time end_time;
+
     int openHandle(const std::string& path);
     void closeHandle();
 
@@ -95,6 +97,7 @@ public:
     const GhwHierarchy& getTop() const;
 
     const std::vector<GhwTraceData>& getTraceData(unsigned int signal) const;
+    Time getEndTime() const;
 };
 
 #endif // __GHW_HH__

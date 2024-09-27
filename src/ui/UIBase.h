@@ -47,10 +47,10 @@ class MainFrameUI : public wxFrame
 		wxMenu* menu_view;
 		wxMenu* menu_time;
 		wxToolBar* m_toolBar1;
-		wxToolBarToolBase* m_tool1;
-		wxToolBarToolBase* m_tool2;
-		wxToolBarToolBase* m_tool3;
-		wxToolBarToolBase* m_tool4;
+		wxToolBarToolBase* tbitem_new_file;
+		wxToolBarToolBase* tbitem_open_file;
+		wxToolBarToolBase* tbitem_save_file;
+		wxToolBarToolBase* tbitem_save_file_as;
 		wxToolBarToolBase* m_tool5;
 		wxToolBarToolBase* m_tool6;
 		wxToolBarToolBase* m_tool7;
@@ -77,6 +77,7 @@ class MainFrameUI : public wxFrame
 
 		// Virtual event handlers, override them in your derived class
 		virtual void onMenuItemOpen( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onToolbarItemOpen( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToolBarZoomInClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onToolBarZoomOutClicked( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onHierarchyViewSelectionChanged( wxDataViewEvent& event ) { event.Skip(); }

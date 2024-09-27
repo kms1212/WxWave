@@ -30,24 +30,30 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id)
     // wave viewer configuration
 }
 
-MainFrame::~MainFrame() { }
+MainFrame::~MainFrame() { this->UnloadFile(); }
 
-void MainFrame::unloadFile()
+void MainFrame::UnloadFile()
 {
     this->hierarchy_view->AssociateModel(nullptr);
     this->property_list->DeleteAllItems();
-    this->wave_viewer->ClearTraces();
+    this->wave_viewer->GetRootTraceNode().ClearChildren();
     ghw.release();
+    this->wave_viewer->Unselect();
 }
 
-void MainFrame::loadFile(const std::string& path)
+void MainFrame::LoadFile(const std::string& path)
 {
-    this->unloadFile();
+    this->UnloadFile();
 
     ghw.reset(new GhwFile(path));
     this->SetTitle("WxWave - " + path);
     this->hie_model.reset(new HierarchyViewModel(this->ghw->getTop()));
     this->hierarchy_view->AssociateModel(this->hie_model.get());
+    this->wave_viewer->SetTraceEndTime(ghw->getEndTime());
+    this->wave_viewer->GetRootTraceNode().AddChild(
+        std::make_shared<WaveViewerNode>("node"));
+    this->wave_viewer->Refresh(false);
+    this->hierarchy_view->Select(this->hierarchy_view->GetTopItem());
 }
 
 void MainFrame::onMenuItemOpen(wxCommandEvent& event)
@@ -60,7 +66,20 @@ void MainFrame::onMenuItemOpen(wxCommandEvent& event)
         return;
     }
 
-    this->loadFile(ofd.GetPath().ToStdString());
+    this->LoadFile(ofd.GetPath().ToStdString());
+}
+
+void MainFrame::onToolbarItemOpen(wxCommandEvent& event)
+{
+    wxFileDialog ofd(this, _("Open wave file"), "", "",
+        "GHDL Wave (*.ghw)|*.ghw|All Files (*.*)|*.*",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (ofd.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    this->LoadFile(ofd.GetPath().ToStdString());
 }
 
 void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
@@ -81,9 +100,11 @@ void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
         unsigned int sig_idx_start, sig_idx_end;
         if (node->GetData().getSignalIndexRange(&sig_idx_start, &sig_idx_end)) {
             for (int i = sig_idx_start; i <= sig_idx_end; i++) {
-                this->wave_viewer->AddTrace(node->GetData().getName(),
-                    node->GetData().getName(), 20,
-                    new GhwTraceHandle(*this->ghw.get(), i));
+                this->wave_viewer->GetRootTraceNode().AddChild(
+                    std::make_shared<WaveViewerNode>(node->GetData().getName(),
+                        node->GetData().getName(), 20,
+                        std::make_shared<GhwTraceHandle>(*this->ghw.get(), i)));
+                this->wave_viewer->Refresh(false);
             }
         }
     }

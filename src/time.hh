@@ -54,6 +54,16 @@ public:
         return Time((int)((double)this->steps * rhs));
     }
 
+    const Time operator/(const int rhs) const
+    {
+        return Time(this->steps / rhs);
+    }
+
+    const Time operator/(const double rhs) const
+    {
+        return Time((int)((double)this->steps / rhs));
+    }
+
     bool operator==(const Time rhs) const { return this->steps == rhs.steps; }
     bool operator!=(const Time rhs) const { return !(*this == rhs); }
     bool operator<(const Time rhs) const { return this->steps < rhs.steps; }

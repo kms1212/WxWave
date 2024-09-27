@@ -318,7 +318,7 @@
             <property name="aui_row">0</property>
             <property name="best_size"></property>
             <property name="bg"></property>
-            <property name="bitmapsize"></property>
+            <property name="bitmapsize">32,32</property>
             <property name="caption"></property>
             <property name="caption_visible">1</property>
             <property name="center_pane">0</property>
@@ -365,48 +365,52 @@
             <property name="window_name"></property>
             <property name="window_style"></property>
             <object class="tool" expanded="true">
-              <property name="bitmap"></property>
+              <property name="bitmap">Load From Art Provider; wxART_NEW; wxART_TOOLBAR</property>
               <property name="context_menu">0</property>
               <property name="id">wxID_ANY</property>
               <property name="kind">wxITEM_NORMAL</property>
               <property name="label">tool</property>
-              <property name="name">m_tool1</property>
+              <property name="name">tbitem_new_file</property>
               <property name="permission">protected</property>
               <property name="statusbar"></property>
               <property name="tooltip"></property>
             </object>
             <object class="tool" expanded="true">
-              <property name="bitmap"></property>
+              <property name="bitmap">Load From Art Provider; wxART_FILE_OPEN; wxART_TOOLBAR</property>
               <property name="context_menu">0</property>
               <property name="id">wxID_ANY</property>
               <property name="kind">wxITEM_NORMAL</property>
               <property name="label">tool</property>
-              <property name="name">m_tool2</property>
+              <property name="name">tbitem_open_file</property>
+              <property name="permission">protected</property>
+              <property name="statusbar"></property>
+              <property name="tooltip"></property>
+              <event name="OnToolClicked">onToolbarItemOpen</event>
+            </object>
+            <object class="tool" expanded="true">
+              <property name="bitmap">Load From Art Provider; wxART_FILE_SAVE; wxART_TOOLBAR</property>
+              <property name="context_menu">0</property>
+              <property name="id">wxID_ANY</property>
+              <property name="kind">wxITEM_NORMAL</property>
+              <property name="label">tool</property>
+              <property name="name">tbitem_save_file</property>
               <property name="permission">protected</property>
               <property name="statusbar"></property>
               <property name="tooltip"></property>
             </object>
             <object class="tool" expanded="true">
-              <property name="bitmap"></property>
+              <property name="bitmap">Load From Art Provider; wxART_FILE_SAVE_AS; wxART_TOOLBAR</property>
               <property name="context_menu">0</property>
               <property name="id">wxID_ANY</property>
               <property name="kind">wxITEM_NORMAL</property>
               <property name="label">tool</property>
-              <property name="name">m_tool3</property>
+              <property name="name">tbitem_save_file_as</property>
               <property name="permission">protected</property>
               <property name="statusbar"></property>
               <property name="tooltip"></property>
             </object>
-            <object class="tool" expanded="true">
-              <property name="bitmap"></property>
-              <property name="context_menu">0</property>
-              <property name="id">wxID_ANY</property>
-              <property name="kind">wxITEM_NORMAL</property>
-              <property name="label">tool</property>
-              <property name="name">m_tool4</property>
+            <object class="toolSeparator" expanded="true">
               <property name="permission">protected</property>
-              <property name="statusbar"></property>
-              <property name="tooltip"></property>
             </object>
             <object class="tool" expanded="true">
               <property name="bitmap"></property>

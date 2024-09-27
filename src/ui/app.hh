@@ -6,8 +6,14 @@
 class WxWaveApp : public wxApp {
     DECLARE_CLASS(WxWaveApp);
 
+private:
+    wxArrayString files;
+
 public:
-    bool OnInit();
+    virtual bool OnInit() override;
+
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) override;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) override;
 };
 
 #endif // __UI_APP_HH__
