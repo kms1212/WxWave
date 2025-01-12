@@ -21,7 +21,7 @@ class $FRAME_ID : public ${FRAME_ID}UI {
 private:
 
 public:
-    $FRAME_ID(wxWindow* present, wxWindowID id = wxID_ANY);
+    $FRAME_ID(wxWindow* parent, wxWindowID id = wxID_ANY);
     ~$FRAME_ID();
 };
 

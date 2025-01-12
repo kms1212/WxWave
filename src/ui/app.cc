@@ -16,13 +16,14 @@
 #include <vector>
 
 #include "app.hh"
+#include "file/xml.hh"
 #include "ui/MainFrame.hh"
 
 static const wxCmdLineEntryDesc cmd_line_desc[]
     = { { wxCMD_LINE_SWITCH, _("h"), _("help"), _("show this help message"),
             wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
           { wxCMD_LINE_PARAM, NULL, NULL, "file to open", wxCMD_LINE_VAL_STRING,
-              wxCMD_LINE_PARAM_MULTIPLE },
+              wxCMD_LINE_PARAM_MULTIPLE | wxCMD_LINE_PARAM_OPTIONAL },
           { wxCMD_LINE_NONE } };
 
 bool WxWaveApp::OnInit()
@@ -43,6 +44,13 @@ bool WxWaveApp::OnInit()
     }
 
     this->SetTopWindow(main_frame);
+
+    XmlDocument xmldoc("asdf.xml");
+
+    fprintf(stderr, "%s\n", xmldoc.getRootElement().getName());
+    xmldoc.getRootElement().setName("asdf");
+    fprintf(stderr, "%s\n", xmldoc.getRootElement().getName());
+    // xmldoc.saveDocument(xmldoc.getFilePath());
 
     return true;
 }

@@ -43,9 +43,14 @@ bool GhwTraceHandle::seekNextTransition()
     return true;
 }
 
-LogicValue GhwTraceHandle::getValue() const
+Trace::AppearanceType GhwTraceHandle::getAppearanceType() const
 {
-    return this->trace_data[this->current_data_index].value;
+    return this->trace_data[this->current_data_index].type;
+}
+
+char GhwTraceHandle::getAppearanceChar() const
+{
+    return this->trace_data[this->current_data_index].ch;
 }
 
 static const char* get_literal(union ghw_type* type, uint32_t e)
@@ -223,8 +228,27 @@ void GhwFile::loadData()
                             trace_data[i].pop_back();
                         }
 
+                        Trace::AppearanceType aptype;
+
+                        switch (value) {
+                            case '0':
+                            case 'L':
+                                aptype = Trace::AT_LOW;
+                                break;
+                            case '1':
+                            case 'H':
+                                aptype = Trace::AT_HIGH;
+                                break;
+                            case 'Z':
+                                aptype = Trace::AT_MID;
+                                break;
+                            default:
+                                aptype = Trace::AT_UNKNOWN;
+                                break;
+                        }
+
                         trace_data[i].push_back(
-                            GhwTraceData(current_time, LogicValue(value)));
+                            GhwTraceData(current_time, aptype, value));
                     }
                 }
             }
@@ -243,17 +267,7 @@ end:
     return;
 }
 
-const std::vector<std::string>& GhwFile::getStringTable() const
-{
-    return this->string_table;
-}
-
-const std::vector<std::string>& GhwFile::getTypeTable() const
-{
-    return this->type_table;
-}
-
-const GhwHierarchy& GhwFile::getTop() const { return *this->top; }
+const GhwHierarchy* GhwFile::getTop() const { return this->top.get(); }
 
 const std::vector<GhwTraceData>& GhwFile::getTraceData(
     unsigned int signal) const
@@ -307,7 +321,8 @@ GhwHierarchy::GhwHierarchy(const GhwHierarchy* parent, const GhwFile& file,
             case ghw_hie_port_inout:
             case ghw_hie_port_buffer:
             case ghw_hie_port_linkage:
-                children.push_back(GhwHierarchy(this, this->file, h, child));
+                children.push_back(std::make_shared<const GhwHierarchy>(
+                    this, this->file, h, child));
                 break;
             default:
                 abort();
@@ -346,40 +361,28 @@ GhwHierarchy::GhwHierarchy(const GhwHierarchy* parent, const GhwFile& file,
     this->trace_data = &file.getTraceData(sig_index_start);
 }
 
-const std::string& GhwHierarchy::getKind() const { return this->kind; }
-const std::string& GhwHierarchy::getName() const { return this->name; }
+std::string GhwHierarchy::getName() const { return this->name; }
 std::string GhwHierarchy::getPath() const
 {
-    const GhwHierarchy* current = this;
-    std::vector<const GhwHierarchy*> node_path;
-    std::string path;
-
-    while (current != nullptr) {
-        node_path.push_back(current);
-        fprintf(stderr, "%s\n", current->getName().c_str());
-        current = current->parent;
+    if (this->parent != nullptr) {
+        return this->parent->getPath() + "." + this->name;
+    } else {
+        return this->name;
     }
-
-    for (auto i = node_path.rbegin(); i != node_path.rend(); ++i) {
-        path += (*i)->getName() + ".";
-        node_path.pop_back();
-    }
-
-    return path;
 }
-const std::string& GhwHierarchy::getSubtype() const { return this->subtype; }
-const std::vector<std::string>& GhwHierarchy::getPackages() const
-{
-    return this->packages;
-}
-const std::map<std::string, std::string>& GhwHierarchy::getProperties() const
+std::string GhwHierarchy::getSubtype() const { return this->subtype; }
+std::map<std::string, std::string> GhwHierarchy::getProperties() const
 {
     return this->properties;
 }
 
-const std::vector<GhwHierarchy>& GhwHierarchy::getChildren() const
+std::vector<const WaveFileHierarchy*> GhwHierarchy::getChildren() const
 {
-    return this->children;
+    std::vector<const WaveFileHierarchy*> ret;
+    for (const auto& child : this->children) {
+        ret.push_back(child.get());
+    }
+    return ret;
 }
 
 const GhwHierarchy* GhwHierarchy::getParent() const { return this->parent; }

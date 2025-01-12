@@ -17,9 +17,8 @@ file(GLOB WXWAVE_SOURCES
     "${CMAKE_SOURCE_DIR}/src/*"
     "${CMAKE_SOURCE_DIR}/src/file/*"
     "${CMAKE_SOURCE_DIR}/src/ui/*")
+# add_executable(wxwave MACOSX_BUNDLE ${WXWAVE_SOURCES})
 add_executable(wxwave ${WXWAVE_SOURCES})
-
-file(COPY ${CMAKE_SOURCE_DIR}/assets/xsd DESTINATION ${CMAKE_BINARY_DIR})
 
 target_compile_features(wxwave PRIVATE c_std_11)
 target_compile_features(wxwave PRIVATE cxx_std_17)
@@ -43,6 +42,18 @@ target_link_libraries(wxwave PUBLIC nlohmann_json::nlohmann_json)
 set_target_properties(wxwave PROPERTIES
     BUILD_RPATH "/opt/ghdl/"
     INSTALL_RPATH "/opt/ghdl/"
+)
+set_target_properties(wxwave PROPERTIES
+    BUNDLE True
+	MACOSX_BUNDLE_INFO_STRING                       ""
+	MACOSX_BUNDLE_ICON_FILE                         ""
+    MACOSX_BUNDLE_GUI_IDENTIFIER                    com.kms1212.wxwave
+    MACOSX_BUNDLE_BUNDLE_NAME                       WxWave
+    MACOSX_BUNDLE_BUNDLE_VERSION                    "0.1"
+    MACOSX_BUNDLE_LONG_VERSION_STRING               "0.1"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING              "0.1"
+    MACOSX_BUNDLE_COPYRIGHT                         "Copyright © 2025 by kms1212, All rights reserved"
+    MACOSX_BUNDLE_INFO_PLIST                        ${CMAKE_SOURCE_DIR}/dist/macosx_bundle_info.plist.in
 )
 
 add_subdirectory(lib)

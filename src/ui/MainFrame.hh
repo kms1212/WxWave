@@ -10,16 +10,16 @@ private:
     HierarchyViewModelNode* parent;
     std::vector<HierarchyViewModelNode> children;
 
-    const GhwHierarchy& hie;
+    const WaveFileHierarchy& hie;
 
 public:
     HierarchyViewModelNode(
-        HierarchyViewModelNode* parent, const GhwHierarchy& hie)
+        HierarchyViewModelNode* parent, const WaveFileHierarchy& hie)
         : parent(parent)
         , hie(hie)
     {
-        for (const GhwHierarchy& child : hie.getChildren()) {
-            children.push_back(HierarchyViewModelNode(this, child));
+        for (const WaveFileHierarchy* child : hie.getChildren()) {
+            children.push_back(HierarchyViewModelNode(this, *child));
         }
     }
 
@@ -34,7 +34,7 @@ public:
     }
     unsigned GetChildrenCount() const { return this->children.size(); }
 
-    const GhwHierarchy& GetData() { return this->hie; }
+    const WaveFileHierarchy& GetData() { return this->hie; }
 };
 
 class HierarchyViewModel : public wxDataViewModel {
@@ -42,7 +42,7 @@ private:
     HierarchyViewModelNode root;
 
 public:
-    HierarchyViewModel(const GhwHierarchy& top)
+    HierarchyViewModel(const WaveFileHierarchy& top)
         : root(NULL, top)
     {
     }

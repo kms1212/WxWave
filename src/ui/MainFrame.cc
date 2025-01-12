@@ -47,11 +47,9 @@ void MainFrame::LoadFile(const std::string& path)
 
     ghw.reset(new GhwFile(path));
     this->SetTitle("WxWave - " + path);
-    this->hie_model.reset(new HierarchyViewModel(this->ghw->getTop()));
+    this->hie_model.reset(new HierarchyViewModel(*this->ghw->getTop()));
     this->hierarchy_view->AssociateModel(this->hie_model.get());
     this->wave_viewer->SetTraceEndTime(ghw->getEndTime());
-    this->wave_viewer->GetRootTraceNode().AddChild(
-        std::make_shared<WaveViewerNode>("node"));
     this->wave_viewer->Refresh(false);
     this->hierarchy_view->Select(this->hierarchy_view->GetTopItem());
     this->hierarchy_view->Expand(this->hierarchy_view->GetTopItem());
@@ -87,28 +85,41 @@ void MainFrame::onHierarchyViewSelectionChanged(wxDataViewEvent& event)
 {
     this->property_list->DeleteAllItems();
 
-    if (this->hierarchy_view->HasSelection()) {
-        HierarchyViewModelNode* node
-            = (HierarchyViewModelNode*)this->hierarchy_view->GetCurrentItem()
-                  .GetID();
-
-        long idx = this->property_list->InsertItem(0, "Name");
-        this->property_list->SetItem(idx, 1, node->GetData().getPath());
-
-        idx = this->property_list->InsertItem(idx + 1, "Type");
-        this->property_list->SetItem(idx, 1, node->GetData().getSubtype());
-
-        unsigned int sig_idx_start, sig_idx_end;
-        if (node->GetData().getSignalIndexRange(&sig_idx_start, &sig_idx_end)) {
-            for (int i = sig_idx_start; i <= sig_idx_end; i++) {
-                this->wave_viewer->GetRootTraceNode().AddChild(
-                    std::make_shared<WaveViewerNode>(node->GetData().getName(),
-                        node->GetData().getName(), 20,
-                        std::make_shared<GhwTraceHandle>(*this->ghw.get(), i)));
-                this->wave_viewer->Refresh(false);
-            }
-        }
+    if (!this->hierarchy_view->HasSelection()) {
+        return;
     }
+
+    HierarchyViewModelNode* node
+        = (HierarchyViewModelNode*)this->hierarchy_view->GetCurrentItem()
+                .GetID();
+
+    long idx = this->property_list->InsertItem(0, "Name");
+    this->property_list->SetItem(idx, 1, node->GetData().getPath());
+
+    idx = this->property_list->InsertItem(idx + 1, "Type");
+    this->property_list->SetItem(idx, 1, node->GetData().getSubtype());
+
+    unsigned int sig_idx_start, sig_idx_end;
+    if (!dynamic_cast<const GhwHierarchy&>(node->GetData())
+            .getSignalIndexRange(&sig_idx_start, &sig_idx_end)) {
+        return;
+    }
+    
+    if (sig_idx_start == sig_idx_end) {
+        this->wave_viewer->GetRootTraceNode().AddChild(
+            std::make_shared<WaveViewerNode>(node->GetData().getName(),
+                std::make_shared<GhwTraceHandle>(*this->ghw.get(), sig_idx_start)));
+    } else {
+        std::shared_ptr<WaveViewerNode> wvnode = std::make_shared<WaveViewerNode>(node->GetData().getName(), std::make_shared<GhwTraceHandle>(*this->ghw.get(), sig_idx_start), true);
+        this->wave_viewer->GetRootTraceNode().AddChild(wvnode);
+
+        for (int i = sig_idx_start; i <= sig_idx_end; i++) {
+            wvnode->AddChild(
+                std::make_shared<WaveViewerNode>(node->GetData().getName() + "[" + std::to_string(i - sig_idx_start) + "]",
+                    std::make_shared<GhwTraceHandle>(*this->ghw.get(), i)));
+        }
+    } 
+    this->wave_viewer->Refresh(false);
 }
 
 void MainFrame::onToolBarZoomInClicked(wxCommandEvent& event)

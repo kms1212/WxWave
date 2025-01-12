@@ -98,37 +98,37 @@ MainFrameUI::MainFrameUI( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_toolBar1 = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
 	m_toolBar1->SetToolBitmapSize( wxSize( 32,32 ) );
-	tbitem_new_file = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_NEW), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_new_file = m_toolBar1->AddTool( wxID_NEW, _("New File"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_NEW), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("New File"), wxEmptyString, NULL );
 
-	tbitem_open_file = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_OPEN), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_open_file = m_toolBar1->AddTool( wxID_OPEN, _("Open File"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_OPEN), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("Open File"), wxEmptyString, NULL );
 
-	tbitem_save_file = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_save_file = m_toolBar1->AddTool( wxID_SAVE, _("Save File"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("Save File"), wxEmptyString, NULL );
 
-	tbitem_save_file_as = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE_AS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
-
-	m_toolBar1->AddSeparator();
-
-	m_tool5 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
-
-	m_tool6 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
-
-	m_tool7 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
-
-	m_tool8 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_save_file_as = m_toolBar1->AddTool( wxID_SAVEAS, _("Save As..."), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE_AS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("Save As..."), wxEmptyString, NULL );
 
 	m_toolBar1->AddSeparator();
 
-	tbitem_zoom_in = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_PLUS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_first = m_toolBar1->AddTool( wxID_FIRST, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_GOTO_FIRST), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	tbitem_zoom_out = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_MINUS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_backward = m_toolBar1->AddTool( wxID_BACKWARD, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_GO_BACK), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	m_tool11 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_forward = m_toolBar1->AddTool( wxID_FORWARD, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_GO_FORWARD), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	m_tool12 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_last = m_toolBar1->AddTool( wxID_LAST, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_GOTO_LAST), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
 	m_toolBar1->AddSeparator();
 
-	m_tool13 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	tbitem_zoom_in = m_toolBar1->AddTool( wxID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_PLUS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL );
+
+	tbitem_zoom_out = m_toolBar1->AddTool( wxID_ANY, _("Zoom Out"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_MINUS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL );
+
+	tbitem_zoom_100 = m_toolBar1->AddTool( wxID_ZOOM_100, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+
+	tbitem_zoom_fit = m_toolBar1->AddTool( wxID_ZOOM_FIT, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+
+	m_toolBar1->AddSeparator();
+
+	m_tool13 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FIND), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
 	m_tool14 = m_toolBar1->AddTool( wxID_ANY, _("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
@@ -216,5 +216,121 @@ MainFrameUI::MainFrameUI( wxWindow* parent, wxWindowID id, const wxString& title
 }
 
 MainFrameUI::~MainFrameUI()
+{
+}
+
+TracePropertyDialogUI::TracePropertyDialogUI( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	wxBoxSizer* bSizer6;
+	bSizer6 = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer10;
+	bSizer10 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText3 = new wxStaticText( this, wxID_ANY, _("MyLabel"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText3->Wrap( -1 );
+	bSizer10->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_customControl3 = new wxWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer10->Add( m_customControl3, 1, wxALL|wxEXPAND, 5 );
+
+
+	bSizer6->Add( bSizer10, 1, wxEXPAND, 5 );
+
+	wxString m_radioBox1Choices[] = { _("Digital"), _("Analog") };
+	int m_radioBox1NChoices = sizeof( m_radioBox1Choices ) / sizeof( wxString );
+	m_radioBox1 = new wxRadioBox( this, wxID_ANY, _("Visualization"), wxDefaultPosition, wxDefaultSize, m_radioBox1NChoices, m_radioBox1Choices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBox1->SetSelection( 0 );
+	bSizer6->Add( m_radioBox1, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer7;
+	bSizer7 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText1 = new wxStaticText( this, wxID_ANY, _("Value Base"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1->Wrap( -1 );
+	bSizer7->Add( m_staticText1, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxString m_choice1Choices[] = { _("Hexadecimal"), _("Decimal"), _("Signed Decimal"), _("Binary"), _("Octal"), _("ASCII") };
+	int m_choice1NChoices = sizeof( m_choice1Choices ) / sizeof( wxString );
+	m_choice1 = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice1NChoices, m_choice1Choices, 0 );
+	m_choice1->SetSelection( 0 );
+	bSizer7->Add( m_choice1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+
+	bSizer6->Add( bSizer7, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer8;
+	bSizer8 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText2 = new wxStaticText( this, wxID_ANY, _("Color"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText2->Wrap( -1 );
+	bSizer8->Add( m_staticText2, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxString m_choice2Choices[] = { _("Red"), _("Orange"), _("Yellow"), _("Green"), _("Blue"), _("Purple"), _("White"), _("Pink") };
+	int m_choice2NChoices = sizeof( m_choice2Choices ) / sizeof( wxString );
+	m_choice2 = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice2NChoices, m_choice2Choices, 0 );
+	m_choice2->SetSelection( 3 );
+	bSizer8->Add( m_choice2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+
+	bSizer6->Add( bSizer8, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText10 = new wxStaticText( this, wxID_ANY, _("Trace Height"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText10->Wrap( -1 );
+	bSizer9->Add( m_staticText10, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_spinCtrl1 = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 20, 200, 0 );
+	bSizer9->Add( m_spinCtrl1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+
+	bSizer6->Add( bSizer9, 0, wxEXPAND, 5 );
+
+	m_checkBox1 = new wxCheckBox( this, wxID_ANY, _("RIght Justify"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer6->Add( m_checkBox1, 0, wxALL|wxEXPAND, 5 );
+
+	m_checkBox2 = new wxCheckBox( this, wxID_ANY, _("Invert"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer6->Add( m_checkBox2, 0, wxALL|wxEXPAND, 5 );
+
+	m_checkBox3 = new wxCheckBox( this, wxID_ANY, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer6->Add( m_checkBox3, 0, wxALL|wxEXPAND, 5 );
+
+	m_checkBox4 = new wxCheckBox( this, wxID_ANY, _("Check Me!"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer6->Add( m_checkBox4, 0, wxALL|wxEXPAND, 5 );
+
+	m_checkBox5 = new wxCheckBox( this, wxID_ANY, _("Check Me!"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer6->Add( m_checkBox5, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer11;
+	bSizer11 = new wxBoxSizer( wxHORIZONTAL );
+
+
+	bSizer11->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_sdbSizer1 = new wxStdDialogButtonSizer();
+	m_sdbSizer1OK = new wxButton( this, wxID_OK );
+	m_sdbSizer1->AddButton( m_sdbSizer1OK );
+	m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL );
+	m_sdbSizer1->AddButton( m_sdbSizer1Cancel );
+	m_sdbSizer1->Realize();
+
+	bSizer11->Add( m_sdbSizer1, 3, wxEXPAND, 5 );
+
+
+	bSizer6->Add( bSizer11, 1, wxEXPAND, 5 );
+
+
+	this->SetSizer( bSizer6 );
+	this->Layout();
+	bSizer6->Fit( this );
+
+	this->Centre( wxBOTH );
+}
+
+TracePropertyDialogUI::~TracePropertyDialogUI()
 {
 }

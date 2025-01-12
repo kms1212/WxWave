@@ -8,13 +8,55 @@
 #include <wx/dcbuffer.h>
 #include <wx/grid.h>
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#include "macros.h"
+#include "ui/TracePropertyDialog.hh"
 
 wxDEFINE_EVENT(WAVE_DISPLAY_CHANGE_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(WAVE_CURSOR_MOVE_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(WAVE_SELECTION_CHANGE_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(SIGNAL_SELECTION_CHANGE_EVENT, wxCommandEvent);
+
+static const Time marker_gap_list[] = {
+    Time(1),
+    Time(2),
+    Time(5),
+    Time(10),
+    Time(20),
+    Time(50),
+    Time(100),
+    Time(200),
+    Time(500),
+    Time(1'000),
+    Time(2'000),
+    Time(5'000),
+    Time(10'000),
+    Time(20'000),
+    Time(50'000),
+    Time(100'000),
+    Time(200'000),
+    Time(500'000),
+    Time(1'000'000),
+    Time(2'000'000),
+    Time(5'000'000),
+    Time(10'000'000),
+    Time(20'000'000),
+    Time(50'000'000),
+    Time(100'000'000),
+    Time(200'000'000),
+    Time(500'000'000),
+    Time(1'000'000'000),
+    Time(2'000'000'000),
+    Time(5'000'000'000),
+    Time(10'000'000'000),
+    Time(20'000'000'000),
+    Time(50'000'000'000),
+    Time(100'000'000'000),
+    Time(200'000'000'000),
+    Time(500'000'000'000),
+    Time(1'000'000'000'000),
+    Time(2'000'000'000'000),
+    Time(5'000'000'000'000),
+};
 
 WaveViewerControl::WaveViewerControl(wxWindow* parent, wxWindowID winid,
     const wxPoint& pos, const wxSize& size, long style, const wxString& name)
@@ -25,7 +67,7 @@ WaveViewerControl::WaveViewerControl(wxWindow* parent, wxWindowID winid,
     , wave_sel_start(-1)
     , wave_sel_end(-1)
     , wave_cursor_pos(-1)
-    , root_trace_node("root")
+    , root_trace_node("root", nullptr, true)
 {
 }
 
@@ -39,6 +81,7 @@ EVT_PAINT(WaveViewerControl::onPaint)
 EVT_LEFT_DCLICK(WaveViewerControl::onLeftDoubleClick)
 EVT_LEFT_DOWN(WaveViewerControl::onLeftDown)
 EVT_LEFT_UP(WaveViewerControl::onLeftUp)
+EVT_RIGHT_DOWN(WaveViewerControl::onRightDown)
 EVT_LEAVE_WINDOW(WaveViewerControl::onMouseLeave)
 EVT_KEY_DOWN(WaveViewerControl::onKeyDown)
 EVT_MOUSEWHEEL(WaveViewerControl::onMouseScroll)
@@ -65,7 +108,7 @@ std::pair<WaveViewerNode*, int> WaveViewerControl::findNodeByMousePos(
     int mouse_y, WaveViewerNode& node, int base_y)
 {
     base_y += row_gap;
-    int row_height = node.IsGroup() ? 20 : node.GetRenderHeight();
+    int row_height = node.GetRenderHeight();
     if (row_height < 20)
         row_height = 20;
 
@@ -106,7 +149,7 @@ int WaveViewerControl::drawNode(
     bool isdark = wxSystemSettings::GetAppearance().IsDark();
 
     base_y += row_gap;
-    int row_height = node.IsGroup() ? 20 : node.GetRenderHeight();
+    int row_height = node.GetRenderHeight();
     if (row_height < 20)
         row_height = 20;
 
@@ -142,7 +185,7 @@ int WaveViewerControl::drawNode(
         }
     }
 
-    if (!node.IsGroup()) {
+    if (node.GetTraceHandle()) {
         // draw trace
         if (base_y + row_height >= wave_area.y) {
             wxRect trace_rect(wave_area.x, base_y, wave_area.width, row_height);
@@ -153,7 +196,7 @@ int WaveViewerControl::drawNode(
     base_y += row_height + row_gap;
 
     if (base_y >= wave_area.y) {
-        dc.SetPen(*wxGREY_PEN);
+        dc.SetPen(wxColour(0x800000));
         dc.DrawLine(wxPoint(wave_area.GetLeft(), base_y),
             wxPoint(wave_area.GetRight(), base_y));
     }
@@ -172,51 +215,88 @@ int WaveViewerControl::drawNode(
     return base_y;
 }
 
-static float logic_to_normalized(LogicValue logic)
-{
-    switch (logic.value) {
-    case LogicValue::V_0:
-        return 0;
-    case LogicValue::V_1:
-        return 1;
-    case LogicValue::V_Z:
-    case LogicValue::V_X:
-    default:
-        return 0.5;
-    }
-}
-
 void WaveViewerControl::drawTrace(wxDC& dc,
-    std::shared_ptr<Trace<LogicValue>> trace_handle, const wxRect& rect)
+    std::shared_ptr<Trace> trace_handle, const wxRect& rect)
 {
     wxDCClipper clip(dc, rect.Intersect(wave_area));
-    std::vector<wxPoint> point_list;
 
     trace_handle->setCurrentTime(this->display_start);
-    double xpos;
-    int ypos = (1 - logic_to_normalized(trace_handle->getValue()))
-        * (rect.height - 1);
-    point_list.push_back(wxPoint(0, ypos));
-    do {
-        xpos = (double)(trace_handle->getCurrentTime() - display_start).steps
-            / display_period.steps * rect.width;
-        if (xpos < 0)
-            continue;
-        point_list.push_back(wxPoint(xpos, ypos));
-        ypos = (1 - logic_to_normalized(trace_handle->getValue()))
-            * (rect.height - 1);
-        point_list.push_back(wxPoint(xpos, ypos));
-    } while (trace_handle->seekNextTransition()
-        && trace_handle->getCurrentTime() <= display_start + display_period);
-    xpos = (double)(this->end_time - display_start).steps / display_period.steps
-        * rect.width;
-    point_list.push_back(wxPoint(xpos, ypos));
 
-    dc.SetPen(*wxGREEN_PEN);
-    dc.DrawLines(point_list.size(), point_list.data(), rect.x, rect.y);
+    Time time = trace_handle->getCurrentTime();
+    char apchar;
+    Trace::AppearanceType aptype;
+    double start_xpos, end_xpos;
+    std::vector<wxPoint> point_list;
+
+    do {
+        if (time < display_start) continue;
+
+        apchar = trace_handle->getAppearanceChar();
+        aptype = trace_handle->getAppearanceType();
+
+        start_xpos = (double)(time - display_start).steps
+            / display_period.steps * rect.width;
+        if (!trace_handle->seekNextTransition()) {
+            time = this->end_time;
+        } else {
+            time = trace_handle->getCurrentTime();
+        }
+        end_xpos = (double)(time - display_start).steps
+            / display_period.steps * rect.width;
+
+        point_list.push_back(wxPoint(start_xpos, rect.height / 2));
+        switch (aptype) {
+            case Trace::AT_LOW:
+                point_list.push_back(wxPoint(start_xpos + 1, rect.height - 1));
+                point_list.push_back(wxPoint(end_xpos - 1, rect.height - 1));
+                break;
+            case Trace::AT_MID:
+                point_list.push_back(wxPoint(start_xpos + 1, rect.height / 2));
+                point_list.push_back(wxPoint(end_xpos - 1, rect.height / 2));
+                break;
+            case Trace::AT_HIGH:
+            case Trace::AT_BOTH:
+            case Trace::AT_UNKNOWN:
+                point_list.push_back(wxPoint(start_xpos + 1, 0));
+                point_list.push_back(wxPoint(end_xpos - 1, 0));
+                break;
+            default:
+                break;
+        }
+        point_list.push_back(wxPoint(end_xpos, rect.height / 2));
+        switch (aptype) {
+            case Trace::AT_BOTH:
+            case Trace::AT_UNKNOWN:
+                point_list.push_back(wxPoint(end_xpos - 1, rect.height - 1));
+                point_list.push_back(wxPoint(start_xpos + 1, rect.height - 1));
+                point_list.push_back(wxPoint(start_xpos, rect.height / 2));
+                break;
+            default:
+                break;
+        }
+
+        if (end_xpos - start_xpos >= 20) {
+            wxColour textcolor = dc.GetTextForeground();
+            dc.SetTextForeground(wxColour(0xEEEEEE));
+            dc.DrawText(wxString(apchar), wxPoint(rect.x + start_xpos + 4, rect.y + 2));
+            dc.SetTextForeground(textcolor);
+        }
+        
+        dc.SetPen(*wxGREEN_PEN);
+        dc.DrawLines(point_list.size(), point_list.data(), rect.x, rect.y);
+        point_list.clear();
+    } while (time < this->end_time);
 }
 
 void WaveViewerControl::onResize(wxSizeEvent& event) { this->calculateAreas(); }
+
+static const Time::timeunit timeunit_table[] = {
+    Time::FS, Time::PS, Time::NS, Time::US, Time::MS, Time::S,
+};
+
+static const std::string timeunit_str_table[] = {
+    "fs", "ps", "ns", "us", "ms", "s",
+};
 
 void WaveViewerControl::onPaint(wxPaintEvent&)
 {
@@ -239,8 +319,16 @@ void WaveViewerControl::onPaint(wxPaintEvent&)
     dc.DrawLine(time_indicator_area.GetLeftBottom(),
         time_indicator_area.GetRightBottom());
     Time marker_time = display_start;
-    Time marker_gap
-        = Time((int)pow(10, floor(log10(display_period.steps) - 1)));
+    Time marker_gap = marker_gap_list[ARRAY_SIZE(marker_gap_list) - 1];
+
+    for (int i = 0; i < ARRAY_SIZE(marker_gap_list); i++) {
+        int marker_count = display_period.steps / marker_gap_list[i].steps;
+        if (2 < marker_count && marker_count < 8) {
+            marker_gap = marker_gap_list[i];
+            break;
+        }
+    }
+
     marker_time.steps -= marker_time.steps % marker_gap.steps;
     if (marker_time < display_start)
         marker_time.steps += marker_gap.steps;
@@ -252,22 +340,32 @@ void WaveViewerControl::onPaint(wxPaintEvent&)
 
         {
             wxDCClipper clip(dc, time_indicator_area);
+
+            int timeunit_idx = (int)floor((log10(display_period.steps) - 1) / 3);
+            if (timeunit_idx < 0) timeunit_idx = 0;
+            if (timeunit_idx > 5) timeunit_idx = 5;
+            Time::timeunit timeunit = timeunit_table[timeunit_idx];
+            std::string timeunit_str = timeunit_str_table[timeunit_idx];
+            
             std::string marker_text = marker_time.steps
-                ? std::to_string((int)marker_time.getTime(Time::NS)) + " ns"
+                ? std::to_string((int)marker_time.getTime(timeunit)) + " " + timeunit_str
                 : "0";
             wxSize text_size = dc.GetTextExtent(marker_text);
 
-            dc.SetPen(*wxWHITE_PEN);
+            dc.SetPen(wxColour(0xEEEEEE));
             dc.DrawLine(wxPoint(time_indicator_area.GetX() + xpos, 18),
                 wxPoint(time_indicator_area.GetX() + xpos,
                     time_indicator_area.GetBottom()));
+            wxColour textcolor = dc.GetTextForeground();
+            dc.SetTextForeground(wxColour(0xEEEEEE));
             dc.DrawText(marker_text,
                 wxPoint(time_indicator_area.GetX() + xpos
                         - text_size.GetWidth() / 2,
                     time_indicator_area.GetTop() + 4));
+            dc.SetTextForeground(textcolor);
         }
 
-        dc.SetPen(*wxGREY_PEN);
+        dc.SetPen(wxColour(0x800000));
         dc.DrawLine(
             wxPoint(time_indicator_area.GetX() + xpos, wave_area.GetTop()),
             wxPoint(time_indicator_area.GetX() + xpos, wave_area.GetBottom()));
@@ -280,9 +378,10 @@ void WaveViewerControl::onPaint(wxPaintEvent&)
 
     // draw cursor and selection
     dc.SetPen(*wxGREY_PEN);
+    int xpos;
     if (display_start <= wave_cursor_pos
         && wave_cursor_pos <= display_start + display_period) {
-        int xpos = timeToPos(wave_cursor_pos);
+        xpos = timeToPos(wave_cursor_pos);
         dc.DrawLine(wxPoint(xpos, wave_area.GetTop()),
             wxPoint(xpos, wave_area.GetBottom()));
     }
@@ -290,13 +389,13 @@ void WaveViewerControl::onPaint(wxPaintEvent&)
     dc.SetPen(*wxBLUE_PEN);
     if (display_start <= wave_sel_start
         && wave_sel_start <= display_start + display_period) {
-        int xpos = timeToPos(wave_sel_start);
+        xpos = timeToPos(wave_sel_start);
         dc.DrawLine(wxPoint(xpos, wave_area.GetTop()),
             wxPoint(xpos, wave_area.GetBottom()));
     }
     if (display_start <= wave_sel_end
         && wave_sel_end <= display_start + display_period) {
-        int xpos = timeToPos(wave_sel_end);
+        xpos = timeToPos(wave_sel_end);
         dc.DrawLine(wxPoint(xpos, wave_area.GetTop()),
             wxPoint(xpos, wave_area.GetBottom()));
     }
@@ -316,6 +415,7 @@ void WaveViewerControl::onLeftDown(wxMouseEvent& event)
     } else if (wave_area.Contains(mouse_pos)) {
         this->wave_sel_start = this->wave_sel_end
             = this->posToTime(mouse_pos.x);
+
         wxCommandEvent new_event(WAVE_SELECTION_CHANGE_EVENT, GetId());
         new_event.SetEventObject(this);
         ProcessWindowEvent(new_event);
@@ -325,7 +425,7 @@ void WaveViewerControl::onLeftDown(wxMouseEvent& event)
 
         if (result.first != nullptr
             && mouse_pos.y >= result.second + result.first->GetRenderHeight()
-            && !result.first->IsGroup()) {
+            && result.first->GetTraceHandle() != nullptr) {
             resizing_row = true;
             resize_node_ypos = result.second;
             resize_target_node = result.first;
@@ -360,9 +460,20 @@ void WaveViewerControl::onLeftDoubleClick(wxMouseEvent& event)
             ProcessWindowEvent(new_event);
         }
 
-        if (result.first != nullptr && result.first->IsGroup()) {
-            result.first->SetFoldStatus(!result.first->IsFolded());
+        if (result.first != nullptr) {
+            if (result.first->IsGroup()) {
+                result.first->SetFoldStatus(!result.first->IsFolded());
+            } else if (mouse_pos.y
+                >= result.second + result.first->GetRenderHeight()) {
+                result.first->SetRenderHeight(20);
+            } else {
+                TracePropertyDialog dialog(this);
+
+                dialog.ShowModal();
+            }
         }
+    } else if (wave_area.Contains(mouse_pos)) {
+        wave_sel_end = wave_sel_start = Time(-1);
     }
 
     this->Refresh(false);
@@ -375,6 +486,39 @@ void WaveViewerControl::onLeftUp(wxMouseEvent& event)
         this->resizing_row = false;
         this->SetCursor(wxCURSOR_ARROW);
     }
+}
+
+void WaveViewerControl::onRightDown(wxMouseEvent& event)
+{
+    SetFocus();
+
+    wxPoint mouse_pos = event.GetPosition();
+
+    if (wave_area.Contains(mouse_pos)) {
+    } else if (signal_list_area.Contains(mouse_pos)) {
+        auto result = this->findNodeByMousePos(
+            mouse_pos.y, this->root_trace_node, wave_area.y - vscroll_offset);
+
+        if (result.first != nullptr
+            && mouse_pos.y <= result.second + result.first->GetRenderHeight()
+            && result.first->GetTraceHandle() != nullptr) {
+            wxMenu menu;
+
+            menu.Append(wxID_UNDO, wxT("&Undo"));
+            menu.Append(wxID_REDO, wxT("&Redo"));
+            menu.AppendSeparator();
+            menu.Append(wxID_CUT, wxT("&Cut"));
+            menu.Append(wxID_COPY, wxT("&Copy"));
+            menu.Append(wxID_PASTE, wxT("&Paste"));
+            menu.Append(wxID_DELETE, wxT("&Delete"));
+            menu.AppendSeparator();
+            menu.Append(wxID_EDIT, wxT("&Edit Trace Properties"));
+            Bind(wxEVT_MENU, &WaveViewerControl::onPopupMenuItemEditTracePropertiesClicked, this, wxID_EDIT);
+            PopupMenu(&menu, mouse_pos);
+        }
+    }
+
+    this->Refresh(false);
 }
 
 void WaveViewerControl::onMouseLeave(wxMouseEvent& event)
@@ -405,6 +549,19 @@ void WaveViewerControl::onMouseMotion(wxMouseEvent& event)
         wxCommandEvent new_event(WAVE_CURSOR_MOVE_EVENT, GetId());
         new_event.SetEventObject(this);
         ProcessWindowEvent(new_event);
+    } else if (signal_list_area.Contains(mouse_pos)) {
+        auto result = this->findNodeByMousePos(
+            mouse_pos.y, this->root_trace_node, wave_area.y - vscroll_offset);
+
+        if (result.first != nullptr
+            && mouse_pos.y >= result.second + result.first->GetRenderHeight()
+            && result.first->GetTraceHandle() != nullptr) {
+            this->SetCursor(wxCURSOR_SIZENS);
+        } else {
+            this->SetCursor(wxCURSOR_ARROW);
+        }
+    } else {
+        this->SetCursor(wxCURSOR_ARROW);
     }
 
     this->Refresh(false);
@@ -445,6 +602,44 @@ void WaveViewerControl::onMouseScroll(wxMouseEvent& event)
     this->Refresh(false);
 }
 
+void WaveViewerControl::onPopupMenuItemUndoClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemRedoClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemCutClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemCopyClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemPasteClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemDeleteClicked(wxCommandEvent& event)
+{
+
+}
+
+void WaveViewerControl::onPopupMenuItemEditTracePropertiesClicked(wxCommandEvent& event)
+{
+    TracePropertyDialog* dialog = new TracePropertyDialog(this);
+
+    dialog->ShowModal();
+}
+
+
 Time WaveViewerControl::posToTime(int xpos) const
 {
     return Time(display_start.steps
@@ -455,7 +650,7 @@ Time WaveViewerControl::posToTime(int xpos) const
 int WaveViewerControl::timeToPos(Time time) const
 {
     return wave_area.GetX()
-        + (double)(wave_cursor_pos - display_start).steps / display_period.steps
+        + (double)(time - display_start).steps / display_period.steps
         * wave_area.GetWidth();
 }
 
@@ -483,9 +678,9 @@ Time WaveViewerControl::GetDisplayPeriod() const
     return this->display_period;
 }
 
-void WaveViewerControl::SetDisplayPeriod(Time time)
+void WaveViewerControl::SetDisplayPeriod(Time period)
 {
-    this->display_period = time;
+    this->display_period = period;
     this->Refresh(false);
 
     wxCommandEvent new_event(WAVE_DISPLAY_CHANGE_EVENT, GetId());

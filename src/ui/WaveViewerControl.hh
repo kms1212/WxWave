@@ -31,28 +31,19 @@ wxDECLARE_EVENT(SIGNAL_SELECTION_CHANGE_EVENT, wxCommandEvent);
 class WaveViewerNode {
 private:
     bool is_group;
-    bool is_folded;
     WaveViewerNode* parent;
     std::vector<std::shared_ptr<WaveViewerNode>> children;
+    std::shared_ptr<Trace> trace_handle;
     std::string name;
-    std::string identifier;
-    int render_height;
-    std::shared_ptr<Trace<LogicValue>> trace_handle;
+    bool is_folded = false;
+    int render_height = 20;
 
 public:
-    WaveViewerNode(const std::string& name, bool is_folded = false)
-    {
-        this->is_group = true;
-        this->name = name;
-        this->is_folded = is_folded;
-    }
-    WaveViewerNode(const std::string& name, const std::string& identifier,
-        int render_height, std::shared_ptr<Trace<LogicValue>> trace_handle)
+    WaveViewerNode(const std::string& name, std::shared_ptr<Trace> trace_handle = nullptr, bool is_group = false)
     {
         this->name = name;
-        this->identifier = identifier;
-        this->render_height = render_height;
         this->trace_handle = trace_handle;
+        this->is_group = is_group;
     }
     ~WaveViewerNode() = default;
 
@@ -76,8 +67,7 @@ public:
 
     int GetRenderHeight() const { return this->render_height; }
     void SetRenderHeight(int height) { this->render_height = height; }
-    const std::string& GetIdentifier() const { return this->identifier; }
-    std::shared_ptr<Trace<LogicValue>> GetTraceHandle()
+    std::shared_ptr<Trace> GetTraceHandle()
     {
         return this->trace_handle;
     }
@@ -126,7 +116,7 @@ private:
         int mouse_y, WaveViewerNode& node, int base_y);
 
     int drawNode(wxDC& dc, WaveViewerNode& node, int base_y, int hie_level = 0);
-    void drawTrace(wxDC& dc, std::shared_ptr<Trace<LogicValue>> trace_handle,
+    void drawTrace(wxDC& dc, std::shared_ptr<Trace> trace_handle,
         const wxRect& rect);
 
     void onResize(wxSizeEvent& event);
@@ -135,9 +125,18 @@ private:
     void onLeftDoubleClick(wxMouseEvent& event);
     void onLeftDown(wxMouseEvent& event);
     void onLeftUp(wxMouseEvent& event);
+    void onRightDown(wxMouseEvent& event);
     void onMouseLeave(wxMouseEvent& event);
     void onMouseMotion(wxMouseEvent& event);
     void onMouseScroll(wxMouseEvent& event);
+
+    void onPopupMenuItemUndoClicked(wxCommandEvent& event);
+    void onPopupMenuItemRedoClicked(wxCommandEvent& event);
+    void onPopupMenuItemCutClicked(wxCommandEvent& event);
+    void onPopupMenuItemCopyClicked(wxCommandEvent& event);
+    void onPopupMenuItemPasteClicked(wxCommandEvent& event);
+    void onPopupMenuItemDeleteClicked(wxCommandEvent& event);
+    void onPopupMenuItemEditTracePropertiesClicked(wxCommandEvent& event);
 
     Time posToTime(int xpos) const;
     int timeToPos(Time time) const;

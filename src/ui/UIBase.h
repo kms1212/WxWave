@@ -29,6 +29,13 @@
 #include "ui/WaveViewerControl.hh"
 #include <wx/statusbr.h>
 #include <wx/frame.h>
+#include <wx/stattext.h>
+#include <wx/radiobox.h>
+#include <wx/choice.h>
+#include <wx/spinctrl.h>
+#include <wx/checkbox.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -40,6 +47,12 @@ class MainFrameUI : public wxFrame
 	private:
 
 	protected:
+		enum
+		{
+			wxID_FIRST = 6000,
+			wxID_LAST,
+		};
+
 		wxMenuBar* m_menubar1;
 		wxMenu* menu_file;
 		wxMenu* menu_edit;
@@ -51,14 +64,14 @@ class MainFrameUI : public wxFrame
 		wxToolBarToolBase* tbitem_open_file;
 		wxToolBarToolBase* tbitem_save_file;
 		wxToolBarToolBase* tbitem_save_file_as;
-		wxToolBarToolBase* m_tool5;
-		wxToolBarToolBase* m_tool6;
-		wxToolBarToolBase* m_tool7;
-		wxToolBarToolBase* m_tool8;
+		wxToolBarToolBase* tbitem_first;
+		wxToolBarToolBase* tbitem_backward;
+		wxToolBarToolBase* tbitem_forward;
+		wxToolBarToolBase* tbitem_last;
 		wxToolBarToolBase* tbitem_zoom_in;
 		wxToolBarToolBase* tbitem_zoom_out;
-		wxToolBarToolBase* m_tool11;
-		wxToolBarToolBase* m_tool12;
+		wxToolBarToolBase* tbitem_zoom_100;
+		wxToolBarToolBase* tbitem_zoom_fit;
 		wxToolBarToolBase* m_tool13;
 		wxToolBarToolBase* m_tool14;
 		wxToolBarToolBase* m_tool15;
@@ -100,6 +113,40 @@ class MainFrameUI : public wxFrame
 			m_splitter2->SetSashPosition( 160 );
 			m_splitter2->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainFrameUI::m_splitter2OnIdle ), NULL, this );
 		}
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class TracePropertyDialogUI
+///////////////////////////////////////////////////////////////////////////////
+class TracePropertyDialogUI : public wxDialog
+{
+	private:
+
+	protected:
+		wxStaticText* m_staticText3;
+		wxWindow* m_customControl3;
+		wxRadioBox* m_radioBox1;
+		wxStaticText* m_staticText1;
+		wxChoice* m_choice1;
+		wxStaticText* m_staticText2;
+		wxChoice* m_choice2;
+		wxStaticText* m_staticText10;
+		wxSpinCtrl* m_spinCtrl1;
+		wxCheckBox* m_checkBox1;
+		wxCheckBox* m_checkBox2;
+		wxCheckBox* m_checkBox3;
+		wxCheckBox* m_checkBox4;
+		wxCheckBox* m_checkBox5;
+		wxStdDialogButtonSizer* m_sdbSizer1;
+		wxButton* m_sdbSizer1OK;
+		wxButton* m_sdbSizer1Cancel;
+
+	public:
+
+		TracePropertyDialogUI( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Edit Trace Properties"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+		~TracePropertyDialogUI();
 
 };
 
